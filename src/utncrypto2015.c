@@ -13,7 +13,7 @@
 #include "ecrypt-sync.h"
 #include <string.h>
 
-int main(void) {
+int main(int argc, char **argv) {
 
 	int accion = 0;
 	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
@@ -35,28 +35,28 @@ int main(void) {
 	archivo_salida = fopen(imagen_encrypt, "w");
 	archivo_salida_decrypt = fopen(imagen_decrypt, "w");
 
-	char encabezado[14 + 1];
-
-	fgets(encabezado, 14, archivo);
-
-	int i=0;
-	for (i = 0; i<14; i++){
-		fputc((int) encabezado[i], archivo_salida);
-		fputc((int) encabezado[i], archivo_salida_decrypt);
-	}
-
-
 	if (!archivo) {
 		printf("Imposible arbrir el archivo!");
 		return 1;
 	}
+	int tamanio = 42;
+	char encabezado[tamanio * sizeof(char)];
+
+	fgets(encabezado, tamanio * sizeof(char), archivo);
+
+	int i = 0;
+	for (i = 0; i < tamanio; i++) {
+		fputc(encabezado[i], archivo_salida);
+		fputc(encabezado[i], archivo_salida_decrypt);
+		printf("%c \n", encabezado[i]);
+	}
 
 	*iv = inicio_iv;
+	u8 * input = malloc(sizeof(u8));
+	u8 * output = malloc(sizeof(u8));
+
 	while (feof(archivo) == 0) {
 		fread(&lector, sizeof(u8), 1, archivo);
-		//printf("%d\n", lector);
-		u8 * input = malloc(sizeof(u8));
-		u8 * output = malloc(sizeof(u8));
 		*input = lector;
 		msglen = sizeof(*input);
 
@@ -66,9 +66,8 @@ int main(void) {
 		//creo el archivo
 		fwrite(output, sizeof(u8), sizeof(output), archivo_salida);
 
-		free(input);
-		free(output);
 	}
+
 	free(ctx);
 	fclose(archivo);
 	fclose(archivo_salida);
@@ -80,12 +79,11 @@ int main(void) {
 	*iv = 0;
 	ctx = malloc(sizeof(ECRYPT_ctx));
 
+	fgets(encabezado, 14 * sizeof(char), archivo_salida);
+
 	while (feof(archivo_salida) == 0) {
 
 		fread(&lector, sizeof(u8), 1, archivo_salida);
-		//printf("%d\n", lector);
-		u8 * input = malloc(sizeof(u8));
-		u8 * output = malloc(sizeof(u8));
 		*input = lector;
 		msglen = sizeof(*input);
 
@@ -94,10 +92,10 @@ int main(void) {
 		//creo el archivo
 		fwrite(output, sizeof(u8), sizeof(output), archivo_salida_decrypt);
 
-		free(input);
-		free(output);
 	}
 
+	free(input);
+	free(output);
 	free(ctx);
 	fclose(archivo_salida);
 	fclose(archivo_salida_decrypt);
