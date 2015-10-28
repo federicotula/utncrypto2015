@@ -39,33 +39,33 @@ int main(int argc, char **argv) {
 		printf("Imposible arbrir el archivo!");
 		return 1;
 	}
-	int tamanio = 42;
-	char encabezado[tamanio * sizeof(char)];
 
-	fgets(encabezado, tamanio * sizeof(char), archivo);
+	int tamanio = 50 * sizeof(char);
+	char encabezado[tamanio];
+
+	fgets(encabezado, tamanio, archivo);
 
 	int i = 0;
 	for (i = 0; i < tamanio; i++) {
 		fputc(encabezado[i], archivo_salida);
 		fputc(encabezado[i], archivo_salida_decrypt);
-		printf("%c \n", encabezado[i]);
 	}
 
 	*iv = inicio_iv;
 	u8 * input = malloc(sizeof(u8));
 	u8 * output = malloc(sizeof(u8));
+	u8 * output2 = malloc(sizeof(u8));
 
 	while (feof(archivo) == 0) {
 		fread(&lector, sizeof(u8), 1, archivo);
 		*input = lector;
-		msglen = sizeof(*input);
+		msglen = sizeof(u8);
 
 		// encripto
 		ECRYPT_process_packet(accion, ctx, iv, input, output, msglen);
 
 		//creo el archivo
-		fwrite(output, sizeof(u8), sizeof(output), archivo_salida);
-
+		fwrite(output, sizeof(u8), 1, archivo_salida);
 	}
 
 	free(ctx);
@@ -76,21 +76,21 @@ int main(int argc, char **argv) {
 
 	//Desencripto
 	accion = 1;
-	*iv = 0;
+	*iv = inicio_iv;
 	ctx = malloc(sizeof(ECRYPT_ctx));
 
-	fgets(encabezado, 14 * sizeof(char), archivo_salida);
+	fgets(encabezado, tamanio, archivo_salida);
 
 	while (feof(archivo_salida) == 0) {
 
 		fread(&lector, sizeof(u8), 1, archivo_salida);
 		*input = lector;
-		msglen = sizeof(*input);
+		msglen = sizeof(u8);
 
 		ECRYPT_process_packet(accion, ctx, iv, input, output, msglen);
 
 		//creo el archivo
-		fwrite(output, sizeof(u8), sizeof(output), archivo_salida_decrypt);
+		fwrite(output, sizeof(u8), 1, archivo_salida_decrypt);
 
 	}
 
