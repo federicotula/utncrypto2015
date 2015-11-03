@@ -13,19 +13,14 @@
 #include "ecrypt-sync.h"
 #include <string.h>
 
+const int CIFRAR = 0;
+const int DECIFRAR = 1;
+
 long int tamanio_archivo(char* path);
+void inicia_ctx(ECRYPT_ctx * ctx);
+void cifrador(int accion, char * path_origen, char * path_destino);
 
 int main(int argc, char **argv) {
-
-	int accion = 0;
-	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
-	u8 * iv = malloc(sizeof(u8));
-	FILE *archivo;
-	FILE *archivo_encrypt;
-	FILE *archivo_decrypt;
-	int inicio_iv = 0;
-	int tamanio = 53 * sizeof(char);
-	char encabezado[tamanio+1];
 
 	char* imagen = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp";
 	char* imagen_encrypt =
@@ -33,82 +28,21 @@ int main(int argc, char **argv) {
 	char* imagen_decrypt =
 			"C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen_decrypt.bmp";
 
-	archivo = fopen(imagen, "rb");
-	archivo_encrypt = fopen(imagen_encrypt, "w");
-	archivo_decrypt = fopen(imagen_decrypt, "w");
+	// CIFRO
+	cifrador(CIFRAR, imagen, imagen_encrypt);
 
-	if (!archivo) {
-		printf("Imposible arbrir el archivo!");
-		return 1;
-	}
-
-
-	int i = 0;
-	fgets(encabezado, tamanio, archivo);
-	for (i = 0; i < tamanio; i++) {
-		fputc(encabezado[i], archivo_encrypt);
-	}
-
-	*iv = inicio_iv;
-
-	long int tamanio_original = tamanio_archivo(imagen) - tamanio;
-	u8 * lector = malloc(tamanio_original + 1);
-	fread(lector, tamanio_original, 1, archivo);
-	u8 * output = malloc(tamanio_original + 1);
-
-	ECRYPT_process_packet(accion, ctx, iv, lector, output, tamanio_original);
-
-	//creo el archivo
-	fwrite(output, tamanio_original, 1, archivo_encrypt);
-
-	free(lector);
-	free(output);
-	free(encabezado);
-	free(ctx);
-	fclose(archivo);
-	fclose(archivo_encrypt);
-
-
-
-	//Desencripto
-	archivo_encrypt = fopen(imagen_encrypt, "rb");
-
-	fgets(encabezado, tamanio, archivo_encrypt);
-
-	for (i = 0; i < tamanio; i++) {
-		fputc(encabezado[i], archivo_decrypt);
-	}
-
-	accion = 1;
-	*iv = inicio_iv;
-	ctx = malloc(sizeof(ECRYPT_ctx));
-
-	long int tamanio_encrypt = tamanio_archivo(imagen_encrypt) - tamanio;
-	lector = malloc(tamanio_encrypt + 1);
-	fread(lector, tamanio_encrypt, 1, archivo_encrypt);
-	output = malloc(tamanio_encrypt + 1);
-
-	ECRYPT_process_packet(accion, ctx, iv, lector, output, tamanio_encrypt);
-
-	//creo el archivo
-	fwrite(output, tamanio_encrypt, 1, archivo_decrypt);
-
-	free(output);
-	free(ctx);
-	free(encabezado);
-
-	fclose(archivo_encrypt);
-	fclose(archivo_decrypt);
+	// DECIFRO
+	cifrador(DECIFRAR, imagen_encrypt, imagen_decrypt);
 
 	return EXIT_SUCCESS;
 }
 
-long int tamanio_archivo(char* path){
+long int tamanio_archivo(char* path) {
 
 	FILE * fichero;
 	double long tamanio = 0;
 
-	fichero = fopen(path,"r");
+	fichero = fopen(path, "r");
 	fseek(fichero, 0L, SEEK_END);
 
 	tamanio = ftell(fichero);
@@ -118,33 +52,85 @@ long int tamanio_archivo(char* path){
 	return tamanio;
 }
 
-/*
-	while (feof(archivo) == 0) {
-		fread(&lector, sizeof(u8), 1, archivo);
-		*input = lector;
-		msglen = sizeof(u8);
+void inicia_ctx(ECRYPT_ctx * ctx) {
 
-		// encripto
-		ECRYPT_process_packet(accion, ctx, iv, input, output, msglen);
+	int i;
 
-		//creo el archivo
-		fwrite(output, sizeof(u8), 1, archivo_encrypt);
+	for (i = 0; i < 8; i++) {
+		ctx->master_ctx.c[i] = 0;
+		ctx->master_ctx.x[i] = 0;
+		ctx->work_ctx.c[i] = 0;
+		ctx->work_ctx.x[i] = 0;
 	}
-*/
+	ctx->master_ctx.carry = 0;
+	ctx->work_ctx.carry = 0;
+}
 
-/*
-	while (feof(archivo_encrypt) == 0) {
+void cifrador(int accion, char * path_origen, char * path_destino) {
 
-		fread(&lector, sizeof(u8), 1, archivo_encrypt);
-		*input = lector;
-		msglen = sizeof(u8);
+	FILE *archivo_origen;
+	FILE *archivo_destino;
+	u8 iv = 0;
+	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
+	inicia_ctx(ctx);
 
-		ECRYPT_process_packet(accion, ctx, iv, input, output2, msglen);
+	int tamanio = 53 * sizeof(char);
+	char encabezado[tamanio];
 
-		//creo el archivo
-		fwrite(output2, sizeof(u8), 1, archivo_decrypt);
+	archivo_origen = fopen(path_origen, "rb");
+	archivo_destino = fopen(path_destino, "w");
 
+	if (!archivo_origen) {
+		printf("Imposible arbrir el archivo!");
+		system("exit");
 	}
 
-	free(input);
-*/
+	fgets(encabezado, tamanio, archivo_origen);
+	fwrite(encabezado, tamanio, 1, archivo_destino);
+
+	int tamanio_lectura, tamanio_escritura;
+	if (accion == 0) {
+		tamanio_lectura = 16;
+		tamanio_escritura = 48;
+	} else {
+		tamanio_lectura = 48;
+		tamanio_escritura = 16;
+	}
+
+	char lector[tamanio_lectura];
+	char * output = malloc(tamanio_escritura);
+
+	while (feof(archivo_origen) == 0) {
+		fread(lector, tamanio_lectura, 1, archivo_origen);
+		ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_lectura);
+		fwrite(output, tamanio_escritura, 1, archivo_destino);
+	}
+
+	free(output);
+	free(lector);
+	free(ctx);
+	fclose(archivo_origen);
+	fclose(archivo_destino);
+
+}
+
+/*
+
+long int tamanio_original = tamanio_archivo(path_origen) - tamanio;
+	char * lector = malloc(tamanio_original + 1);
+	//fread(lector, tamanio_original, 1, archivo_origen);
+	fgets(lector, tamanio_original, archivo_origen);
+	char * output = malloc(tamanio_original + 1);
+
+	ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_original);
+
+	//creo el archivo
+	if (accion == 0){
+		tamanio_original = tamanio_original + tamanio;
+	} else {
+		tamanio_original = tamanio_original / 3;
+	}
+	fwrite(output, tamanio_original, 1, archivo_destino);
+
+
+ */
