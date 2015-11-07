@@ -105,9 +105,9 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 	long int tamanio_escritura;
 
 	if (accion == 0) {
-		tamanio_escritura = tamanio_lectura; //* 3;
+		tamanio_escritura = tamanio_lectura * 3;
 	} else {
-		tamanio_escritura = tamanio_lectura; //(long int) floor(tamanio_lectura/3);
+		tamanio_escritura = (long int) floor(tamanio_lectura/3);
 	}
 
 	u8 * lector = malloc(tamanio_lectura);
