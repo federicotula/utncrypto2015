@@ -17,8 +17,7 @@
  <br>  
 
 ## Archivos soportados
-  * **Imagenes:** .BMP
-
+  * **Imagenes:** .BMP <br>
 
 ## Aclaracion
 El archivo de configuracion de CTX tiene que tener la siguiente estructura
