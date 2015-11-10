@@ -20,44 +20,76 @@ const int DECIFRAR = 1;
 long int tamanio_archivo(char* path);
 void inicia_ctx(ECRYPT_ctx * ctx);
 void cifrador(int accion, char * path_origen, char * path_destino);
-void test();
 int comprueba(char * path_original, char * path_final);
 
-
+/*
 int main(int argc, char **argv) {
-	/*
-	 int accion = 0;
 
-	 if (argv[1][0] == 48){
-	 accion = 0;
-	 } else {
-	 accion = 1;
-	 }
+	int accion;
 
-	 cifrador(accion, argv[2], argv[3]);
-	 */
+	char * path_imagen = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp";
+	char * path_encryptada = "C:\\Users\\admin\\git\\utncrypto2015\\src\\e_imagen.bmp";
+	char * path_decryptada = "C:\\Users\\admin\\git\\utncrypto2015\\src\\d_imagen.bmp";
 
-	char* imagen = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp";
-	char* imagen_encrypt = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen_e.bmp";
-	char* imagen_decrypt = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen_d.bmp";
+	accion = 0;
+	cifrador(accion, path_imagen, path_encryptada);
 
+	accion = 1;
+	cifrador(accion, path_encryptada, path_decryptada);
 
-	//test();
-	// CIFRO
-	cifrador(CIFRAR, imagen, imagen_encrypt);
-
-	// DECIFRO
-	cifrador(DECIFRAR, imagen_encrypt, imagen_decrypt);
-
-	printf("VERDADERO: ");
-	if (comprueba(imagen, imagen_decrypt)==0){
-		puts("Proceso Correcto");
+	printf("El resultado del proceso es: ");
+	if (comprueba(path_imagen, path_decryptada)==0){
+		printf("Proceso Correcto \n");
 	} else {
-		puts("ERROR");
+		printf("ERROR \n");
 	}
 
 	return EXIT_SUCCESS;
 }
+*/
+
+int main(int argc, char **argv) {
+
+	int accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
+
+	if (argc != 3){
+		printf("Cifrador Rabbit \n");
+
+		switch (accion) {
+			case 0:
+				printf("Seleccionaste Cifrar \n");
+				printf("El archivo de ORIGEN es: %s \n", argv[2]);
+				printf("El archivo de DESTINO es: %s \n", argv[3]);
+
+				cifrador(CIFRAR, argv[2], argv[3]);
+				break;
+			case 1:
+				printf("Seleccionaste Decifrar \n");
+				printf("El archivo de ORIGEN es: %s \n", argv[2]);
+				printf("El archivo de DESTINO es: %s \n", argv[3]);
+
+				cifrador(DECIFRAR, argv[2], argv[3]);
+				break;
+			case 2:
+				printf("Seleccionaste Comprobar cifrado \n");
+				printf("El archivo de ORIGINAL es: %s \n", argv[2]);
+				printf("El archivo de DECIFRADO es: %s \n", argv[3]);
+
+				printf("El resultado del proceso es: ");
+				if (comprueba(argv[2], argv[3])==0){
+					printf("Proceso Correcto \n");
+				} else {
+					printf("ERROR \n");
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
+
 
 int comprueba(char * path_original, char * path_final){
 	int resultado = 0, i=0, tamanio = tamanio_archivo(path_original);
@@ -71,6 +103,7 @@ int comprueba(char * path_original, char * path_final){
 		i++;
 		if (c_original != c_final){
 			resultado = 1;
+			printf("Byte del fallo: %d \n", i);
 		}
 	}
 
@@ -78,53 +111,6 @@ int comprueba(char * path_original, char * path_final){
 	fclose(final);
 
 	return resultado;
-
-}
-
-void test() {
-	int tamanio = 53 * sizeof(u8);
-	int tamanio_lectura = tamanio_archivo("C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp") - tamanio;
-	int tamanio_escritura = tamanio_lectura ;
-	FILE *archivo = fopen("C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp", "rb");
-	FILE *salida = fopen("C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen2.bmp", "wb");
-	FILE *salida_medio = fopen("C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen12.bmp", "wb");
-
-	u8 iv = 0;
-	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
-	inicia_ctx(ctx);
-	char * encabezado = malloc(tamanio);
-	fread(encabezado, tamanio, 1, archivo);
-
-	char * lector = malloc(tamanio_lectura);
-	char * output = malloc(tamanio_escritura);
-	char * original = malloc(tamanio_lectura);
-	char * impresion = malloc(tamanio_lectura + tamanio);
-	char * intermedio = malloc(tamanio_escritura + tamanio);
-	fread(lector, tamanio_lectura, 1, archivo);
-	ECRYPT_process_packet(0, ctx, &iv, lector, output, tamanio_lectura);
-	memcpy(intermedio, encabezado, tamanio);
-	memcpy(intermedio + tamanio, output, tamanio_escritura);
-	fwrite(intermedio,tamanio + tamanio_escritura, 1, salida_medio);
-
-	inicia_ctx(ctx);
-	iv = 0;
-
-	ECRYPT_process_packet(1, ctx, &iv, output, original, tamanio_lectura);
-	memcpy(impresion, encabezado, tamanio);
-	memcpy(impresion + tamanio, original, tamanio_lectura);
-	fwrite(impresion,tamanio + tamanio_lectura, 1, salida);
-
-	fclose(salida);
-	fclose(salida_medio);
-	fclose(archivo);
-
-	printf("TEST: ");
-	if (comprueba("C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp", "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen2.bmp")==0){
-		puts("Proceso Correcto");
-	} else {
-		puts("ERROR");
-	}
-
 
 }
 
@@ -163,15 +149,17 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 
 	FILE *archivo_origen;
 	FILE *archivo_destino;
-	u8 iv = 0;
+	u8 * iv = malloc(sizeof(u8));
+	*iv = 0;
+	u32 tamanio_funcion, tamanio = 53 * sizeof(u8);
+
+	// Inicio la clave ctx
 	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
 	inicia_ctx(ctx);
-	long int tamanio_escritura, tamanio_lectura;
 
-	int tamanio = 53 * sizeof(u8);
-
+	// Abro los archivos y verifico que existan
 	archivo_origen = fopen(path_origen, "rb");
-	archivo_destino = fopen(path_destino, "w");
+	archivo_destino = fopen(path_destino, "wb");
 
 	if (!archivo_origen) {
 		printf("Imposible arbrir el archivo!");
@@ -183,47 +171,42 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 		system("exit");
 	}
 
-	tamanio_lectura = tamanio_archivo(path_origen) - tamanio;
-	if (accion == 0) {
-		tamanio_escritura = tamanio_lectura * 3;
-	} else {
-		tamanio_escritura = (long int) floor(tamanio_lectura / 3);
+	// Tamaño de lo que se va a pasar por la funcion
+	tamanio_funcion = tamanio_archivo(path_origen) - tamanio;
+	printf("Tamaño: %d  \n", tamanio_funcion)
+
+	u8 * encabezado = malloc(tamanio);
+	u8 * impresion = malloc(tamanio_funcion + tamanio);
+	u8 * lector = malloc(tamanio_funcion);
+	u8 * output = malloc(tamanio_funcion);
+
+	// Limpio el output que es lo que fallaba
+	u32 i = 0;
+	for(i=0;i<tamanio_funcion;i++){
+		lector[i] = 0;
+		output[i] = 0;
 	}
 
-	char * encabezado = malloc(tamanio);
-	char * impresion = malloc(tamanio_escritura + tamanio);
-	char * lector = malloc(tamanio_lectura);
-	char * output = malloc(tamanio_escritura);
-
+	// Obtengo encabezado y contenido
 	fread(encabezado, tamanio, 1, archivo_origen);
-	fread(lector, tamanio_lectura, 1, archivo_origen);
+	fread(lector, tamanio_funcion, 1, archivo_origen);
 
-	if (accion == 0) {
-		ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_lectura);
-	} else {
-		ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_escritura);
-	}
+	// Proceso lo que obtengo en la lectura
+	ECRYPT_process_packet(accion, ctx, iv, lector, output, tamanio_funcion);
 
-	//creo el archivo
+	// Paso a una unica direccion de memoria para hacer una sola escritura
 	memcpy(impresion, encabezado, tamanio);
-	memcpy(impresion + tamanio, output, tamanio_escritura);
-	fwrite(impresion, tamanio_escritura + tamanio, 1, archivo_destino);
+	memcpy(impresion + tamanio, output, tamanio_funcion);
+	fwrite(impresion, tamanio + tamanio_funcion, 1, archivo_destino);
 
-	free(encabezado);
+
+	//Libero memoria
 	free(output);
 	free(lector);
-	free(ctx);
-//	fflush(archivo_destino);
-//	fflush(archivo_origen);
+	free(impresion);
+	free(encabezado);
 	fclose(archivo_destino);
 	fclose(archivo_origen);
+	free(ctx);
 
 }
-
-/*
- while (feof(archivo_origen) == 0) {
- fread(lector, tamanio_lectura, 1, archivo_origen);
- ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_lectura);
- fwrite(output, tamanio_escritura, 1, archivo_destino);
- }
- */
