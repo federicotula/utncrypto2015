@@ -22,32 +22,6 @@ void inicia_ctx(ECRYPT_ctx * ctx);
 void cifrador(int accion, char * path_origen, char * path_destino);
 int comprueba(char * path_original, char * path_final);
 
-/*
-int main(int argc, char **argv) {
-
-	int accion;
-
-	char * path_imagen = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp";
-	char * path_encryptada = "C:\\Users\\admin\\git\\utncrypto2015\\src\\e_imagen.bmp";
-	char * path_decryptada = "C:\\Users\\admin\\git\\utncrypto2015\\src\\d_imagen.bmp";
-
-	accion = 0;
-	cifrador(accion, path_imagen, path_encryptada);
-
-	accion = 1;
-	cifrador(accion, path_encryptada, path_decryptada);
-
-	printf("El resultado del proceso es: ");
-	if (comprueba(path_imagen, path_decryptada)==0){
-		printf("Proceso Correcto \n");
-	} else {
-		printf("ERROR \n");
-	}
-
-	return EXIT_SUCCESS;
-}
-*/
-
 int main(int argc, char **argv) {
 
 	if (argc == 4){
@@ -88,7 +62,6 @@ int main(int argc, char **argv) {
 
 	return EXIT_SUCCESS;
 }
-
 
 int comprueba(char * path_original, char * path_final){
 	int resultado = 0, i=0, tamanio = tamanio_archivo(path_original);
@@ -148,9 +121,7 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 
 	FILE *archivo_origen;
 	FILE *archivo_destino;
-	u8 * iv = malloc(sizeof(u8));
-	*iv = 0;
-	u32 tamanio_funcion, tamanio = 53 * sizeof(u8);
+	u32 tamanio_bloque, tamanio = 53 * sizeof(u8);
 
 	// Inicio la clave ctx
 	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
@@ -171,35 +142,38 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 	}
 
 	// Tamaño de lo que se va a pasar por la funcion
-	tamanio_funcion = tamanio_archivo(path_origen) - tamanio;
-	printf("Tamaño: %d  \n", tamanio_funcion);
+	tamanio_bloque = tamanio_archivo(path_origen) - tamanio;
 
 	u8 * encabezado = malloc(tamanio);
-	u8 * impresion = malloc(tamanio_funcion + tamanio);
-	u8 * lector = malloc(tamanio_funcion);
-	u8 * output = malloc(tamanio_funcion);
+	u8 * impresion = malloc(tamanio_bloque + tamanio);
+	u8 * lector = malloc(tamanio_bloque);
+	u8 * output = malloc(tamanio_bloque);
 
 	// Limpio el output que es lo que fallaba
 	u32 i = 0;
-	for(i=0;i<tamanio_funcion;i++){
+	for(i=0;i<tamanio_bloque;i++){
 		lector[i] = 0;
 		output[i] = 0;
 	}
 
 	// Obtengo encabezado y contenido
 	fread(encabezado, tamanio, 1, archivo_origen);
-	fread(lector, tamanio_funcion, 1, archivo_origen);
+	fread(lector, tamanio_bloque, 1, archivo_origen);
 
 	// Proceso lo que obtengo en la lectura
-	ECRYPT_process_packet(accion, ctx, iv, lector, output, tamanio_funcion);
+	//ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_bloque);
+	ECRYPT_process_bytes(accion, ctx, lector, output, tamanio_bloque);
+
 
 	// Paso a una unica direccion de memoria para hacer una sola escritura
 	memcpy(impresion, encabezado, tamanio);
-	memcpy(impresion + tamanio, output, tamanio_funcion);
-	fwrite(impresion, tamanio + tamanio_funcion, 1, archivo_destino);
+	memcpy(impresion + tamanio, output, tamanio_bloque);
+	fwrite(impresion, tamanio + tamanio_bloque, 1, archivo_destino);
 
 
 	//Libero memoria
+	fflush(archivo_destino);
+	fflush(archivo_origen);
 	free(output);
 	free(lector);
 	free(impresion);

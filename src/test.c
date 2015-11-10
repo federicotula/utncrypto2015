@@ -90,3 +90,89 @@ void test() {
 
 
 }
+
+
+/*
+int main(int argc, char **argv) {
+
+	int accion, fin =0;
+	char * path_origen = malloc(200);
+	char * path_destino = malloc(200);
+
+	while (fin == 0){
+		printf("Cifrador Rabbit \n");
+		printf("Ingrese la accion a realizar");
+		scanf("%d", &accion);
+		if (accion == 9){
+			fin = 1;
+		} else {
+			scanf("%s", path_origen);
+			scanf("%s", path_destino);
+
+			//int accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
+
+			switch (accion) {
+				case 0:
+					printf("Seleccionaste Cifrar \n");
+					printf("El archivo de ORIGEN es: %s \n", path_origen);
+					printf("El archivo de DESTINO es: %s \n", path_destino);
+
+					cifrador(CIFRAR, path_origen, path_destino);
+					break;
+				case 1:
+					printf("Seleccionaste Decifrar \n");
+					printf("El archivo de ORIGEN es: %s \n", path_origen);
+					printf("El archivo de DESTINO es: %s \n", path_destino);
+
+					cifrador(DECIFRAR, path_origen, path_destino);
+					break;
+				case 2:
+					printf("Seleccionaste Comprobar cifrado \n");
+					printf("El archivo de ORIGINAL es: %s \n", path_origen);
+					printf("El archivo de DECIFRADO es: %s \n", path_destino);
+
+					printf("El resultado del proceso es: ");
+					if (comprueba(path_origen, path_destino)==0){
+						printf("Proceso Correcto \n");
+					} else {
+						printf("ERROR \n");
+					}
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
+*/
+
+/*
+int main(int argc, char **argv) {
+
+	char * path_imagen = "C:\\Users\\admin\\git\\utncrypto2015\\src\\imagen.bmp";
+	char * path_encryptada = "C:\\Users\\admin\\git\\utncrypto2015\\src\\e_imagen.bmp";
+	char * path_decryptada = "C:\\Users\\admin\\git\\utncrypto2015\\src\\d_imagen.bmp";
+	int i = 1;
+	while(i){
+		remove(path_encryptada);
+		remove(path_decryptada);
+
+		cifrador(CIFRAR, path_imagen, path_encryptada);
+		cifrador(DECIFRAR, path_encryptada, path_decryptada);
+
+	//	cifrador(CIFRAR, argv[1], argv[2]);
+	//	cifrador(DECIFRAR, argv[2], argv[3]);
+
+		printf("El resultado del proceso es: ");
+		if (comprueba(path_imagen,path_decryptada)==0){
+			printf("Proceso Correcto \n");
+		} else {
+			printf("ERROR \n");
+		}
+		i++;
+	}
+	return EXIT_SUCCESS;
+}
+*/
