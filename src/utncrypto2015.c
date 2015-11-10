@@ -107,6 +107,7 @@ long int tamanio_encabezado(char * path_origen) {
 
 	// Con la extension, y el path podemos agregar if's para tener en cuenta
 	// otro tipo de extensiones.
+
 	// No necesariamente tienen que ser imagenes, puede ser cualquier tipo de archivo
 	// solamente hay que agregar la logica (en funciones si es mas que un numero fijo)
 
