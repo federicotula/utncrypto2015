@@ -19,12 +19,12 @@ const int DECIFRAR = 1;
 
 long int tamanio_archivo(char* path);
 void inicia_ctx(ECRYPT_ctx * ctx, char * path);
-void cifrador(int accion, char * path_origen, char * path_destino,
-		ECRYPT_ctx * ctx);
+void cifrador(int accion, FILE * archivo_origen, FILE * archivo_destino,
+		ECRYPT_ctx * ctx, int tamanio_bloque);
 int comprueba(char * path_original, char * path_final);
-long int tamanio_encabezado(char * path_origen);
 char * conseguir_extension(char * path_origen);
 void MinToMay(char string[]);
+void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYPT_ctx * ctx);
 
 int main(int argc, char **argv) {
 
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 			printf("El archivo de DESTINO es: %s \n", argv[3]);
 
 			inicia_ctx(ctx, argv[4]);
-			cifrador(CIFRAR, argv[2], argv[3], ctx);
+			cifrador_archivo(CIFRAR, argv[2], argv[3], ctx);
 			break;
 		case 1:									//DECIFRAR
 			printf("Seleccionaste Decifrar \n");
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 			printf("El archivo de DESTINO es: %s \n", argv[3]);
 
 			inicia_ctx(ctx, argv[4]);
-			cifrador(DECIFRAR, argv[2], argv[3], ctx);
+			cifrador_archivo(DECIFRAR, argv[2], argv[3], ctx);
 			break;
 		case 2:									//COMPROBAR IMAGENES
 			printf("Seleccionaste Comprobar cifrado \n");
@@ -101,24 +101,6 @@ int comprueba(char * path_original, char * path_final) {
 
 	return resultado;
 
-}
-
-long int tamanio_encabezado(char * path_origen) {
-
-	// Con la extension, y el path podemos agregar if's para tener en cuenta
-	// otro tipo de extensiones.
-
-	// No necesariamente tienen que ser imagenes, puede ser cualquier tipo de archivo
-	// solamente hay que agregar la logica (en funciones si es mas que un numero fijo)
-
-	char * extension = conseguir_extension(path_origen);
-
-	long int tamanio = 0;
-	if (strcmp(extension, "BMP") == 0) {
-		tamanio = 53;
-	}
-
-	return tamanio;
 }
 
 char * conseguir_extension(char * path_origen) {
@@ -207,14 +189,17 @@ void inicia_ctx(ECRYPT_ctx * ctx, char * path_ctx) {
 	ctx->work_ctx.carry = (u32) work_carry;
 }
 
-void cifrador(int accion, char * path_origen, char * path_destino,
-		ECRYPT_ctx * ctx) {
+void copiar_texto_claro(FILE * archivo_origen, FILE * archivo_destino, int tamanio){
+	u8 * texto = malloc(tamanio);
+	fread(texto, tamanio, 1, archivo_origen);
+	fwrite(texto, tamanio, 1, archivo_destino);
+	free(texto);
+}
 
-	//Encargada de encriptar/decriptar los archivos
+void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYPT_ctx * ctx){
 
-	FILE *archivo_origen;
-	FILE *archivo_destino;
-	u32 tamanio_bloque, tamanio = tamanio_encabezado(path_origen) * sizeof(u8);
+	FILE * archivo_origen;
+	FILE * archivo_destino;
 
 	// Abro los archivos y verifico que existan
 	archivo_origen = fopen(path_origen, "rb");
@@ -230,11 +215,33 @@ void cifrador(int accion, char * path_origen, char * path_destino,
 		system("exit");
 	}
 
-	// Tamaño de lo que se va a pasar por la funcion
-	tamanio_bloque = tamanio_archivo(path_origen) - tamanio;
+	char * extension = conseguir_extension(path_origen);
 
-	u8 * encabezado = malloc(tamanio);
-	u8 * impresion = malloc(tamanio_bloque + tamanio);
+	if (strcmp(extension, "BMP") == 0) {
+		long int encabezado = 53;
+		long int total_archivo = tamanio_archivo(path_origen);
+		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado);
+	} else if(strcmp(extension, "JPG") == 0){
+		long int encabezado = 30;
+		long int pie = 30;
+		long int total_archivo = tamanio_archivo(path_origen);
+		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado- pie);
+		copiar_texto_claro( archivo_origen, archivo_destino, pie);
+	}
+
+
+
+	fclose(archivo_destino);
+	fclose(archivo_origen);
+	free(ctx);
+
+}
+
+void cifrador(int accion, FILE * archivo_origen, FILE * archivo_destino,
+		ECRYPT_ctx * ctx, int tamanio_bloque) {
+
 	u8 * lector = malloc(tamanio_bloque);
 	u8 * output = malloc(tamanio_bloque);
 
@@ -245,8 +252,7 @@ void cifrador(int accion, char * path_origen, char * path_destino,
 		output[i] = 0;
 	}
 
-	// Obtengo encabezado y contenido
-	fread(encabezado, tamanio, 1, archivo_origen);
+	// Obtengo el contenido
 	fread(lector, tamanio_bloque, 1, archivo_origen);
 
 	// Proceso lo que obtengo en la lectura
@@ -254,19 +260,11 @@ void cifrador(int accion, char * path_origen, char * path_destino,
 	ECRYPT_process_bytes(accion, ctx, lector, output, tamanio_bloque);
 
 	// Paso a una unica direccion de memoria para hacer una sola escritura
-	memcpy(impresion, encabezado, tamanio);
-	memcpy(impresion + tamanio, output, tamanio_bloque);
-	fwrite(impresion, tamanio + tamanio_bloque, 1, archivo_destino);
+	fwrite(output, tamanio_bloque, 1, archivo_destino);
 
 	//Libero memoria
 	fflush(archivo_destino);
 	fflush(archivo_origen);
 	free(output);
 	free(lector);
-	free(impresion);
-	free(encabezado);
-	fclose(archivo_destino);
-	fclose(archivo_origen);
-	free(ctx);
-
 }
