@@ -22,6 +22,9 @@ void inicia_ctx(ECRYPT_ctx * ctx, char * path);
 void cifrador(int accion, char * path_origen, char * path_destino,
 		ECRYPT_ctx * ctx);
 int comprueba(char * path_original, char * path_final);
+long int tamanio_encabezado(char * path_origen);
+char * conseguir_extension(char * path_origen);
+void MinToMay(char string[]);
 
 int main(int argc, char **argv) {
 
@@ -100,6 +103,56 @@ int comprueba(char * path_original, char * path_final) {
 
 }
 
+long int tamanio_encabezado(char * path_origen) {
+
+	// Con la extension, y el path podemos agregar if's para tener en cuenta
+	// otro tipo de extensiones.
+	// No necesariamente tienen que ser imagenes, puede ser cualquier tipo de archivo
+	// solamente hay que agregar la logica (en funciones si es mas que un numero fijo)
+
+	char * extension = conseguir_extension(path_origen);
+
+	long int tamanio = 0;
+	if (strcmp(extension, "BMP") == 0) {
+		tamanio = 53;
+	}
+
+	return tamanio;
+}
+
+char * conseguir_extension(char * path_origen) {
+
+	// A partir del path obtengo la extension del archivo origen
+	// Lo devuelvo siempre en mayusculas
+
+	char * extension;
+	int i = 0, fin;
+	while (path_origen[i] != '\0') i++;
+	fin = i;
+	for (; path_origen[i] != '.'; i--) ;
+	i++;
+	extension = malloc(fin - i);
+	memcpy(extension, path_origen + i, fin - i);
+
+	extension[fin - i] = '\0';
+
+	MinToMay(extension);
+
+	return extension;
+}
+
+void MinToMay(char string[]){
+	int i=0;
+	int desp='a'-'A';
+	for (i=0;string[i]!='\0';++i)
+	{
+		if(string[i]>='a'&&string[i]<='z')
+		{
+			string[i]=string[i]-desp;
+		}
+	}
+}
+
 long int tamanio_archivo(char* path) {
 
 	// Devuelve el tamaño del archivo, incluyendo el encabezado
@@ -127,7 +180,6 @@ void inicia_ctx(ECRYPT_ctx * ctx, char * path_ctx) {
 	FILE * ctx_config = fopen(path_ctx, "rb");
 	u32 master_c[8 * t], master_x[8 * t], work_c[8 * t], work_x[8 * t];
 	u32 master_carry, work_carry;
-
 
 	fscanf(ctx_config, "<master_c>%u,%u,%u,%u,%u,%u,%u,%u</master_c>\n",
 			&master_c[0], &master_c[1], &master_c[2], &master_c[3],
@@ -161,7 +213,7 @@ void cifrador(int accion, char * path_origen, char * path_destino,
 
 	FILE *archivo_origen;
 	FILE *archivo_destino;
-	u32 tamanio_bloque, tamanio = 53 * sizeof(u8);
+	u32 tamanio_bloque, tamanio = tamanio_encabezado(path_origen) * sizeof(u8);
 
 	// Abro los archivos y verifico que existan
 	archivo_origen = fopen(path_origen, "rb");
