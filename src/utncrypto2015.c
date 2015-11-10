@@ -18,62 +18,76 @@ const int CIFRAR = 0;
 const int DECIFRAR = 1;
 
 long int tamanio_archivo(char* path);
-void inicia_ctx(ECRYPT_ctx * ctx);
-void cifrador(int accion, char * path_origen, char * path_destino);
+void inicia_ctx(ECRYPT_ctx * ctx, char * path);
+void cifrador(int accion, char * path_origen, char * path_destino,
+		ECRYPT_ctx * ctx);
 int comprueba(char * path_original, char * path_final);
 
 int main(int argc, char **argv) {
 
-	if (argc == 4){
-		int accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
+	int accion = 0;
+	if (argc > 1)
+		accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
+
+	if (argc == 5 || (argc == 4 && accion == 2)) {
 		printf("Cifrador Rabbit \n");
 
+		// Inicio la clave ctx
+		ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
+
 		switch (accion) {
-			case 0:
-				printf("Seleccionaste Cifrar \n");
-				printf("El archivo de ORIGEN es: %s \n", argv[2]);
-				printf("El archivo de DESTINO es: %s \n", argv[3]);
+		case 0:									//CIFRAR
+			printf("Seleccionaste Cifrar \n");
+			printf("El archivo de ORIGEN es: %s \n", argv[2]);
+			printf("El archivo de DESTINO es: %s \n", argv[3]);
 
-				cifrador(CIFRAR, argv[2], argv[3]);
-				break;
-			case 1:
-				printf("Seleccionaste Decifrar \n");
-				printf("El archivo de ORIGEN es: %s \n", argv[2]);
-				printf("El archivo de DESTINO es: %s \n", argv[3]);
+			inicia_ctx(ctx, argv[4]);
+			cifrador(CIFRAR, argv[2], argv[3], ctx);
+			break;
+		case 1:									//DECIFRAR
+			printf("Seleccionaste Decifrar \n");
+			printf("El archivo de ORIGEN es: %s \n", argv[2]);
+			printf("El archivo de DESTINO es: %s \n", argv[3]);
 
-				cifrador(DECIFRAR, argv[2], argv[3]);
-				break;
-			case 2:
-				printf("Seleccionaste Comprobar cifrado \n");
-				printf("El archivo de ORIGINAL es: %s \n", argv[2]);
-				printf("El archivo de DECIFRADO es: %s \n", argv[3]);
+			inicia_ctx(ctx, argv[4]);
+			cifrador(DECIFRAR, argv[2], argv[3], ctx);
+			break;
+		case 2:									//COMPROBAR IMAGENES
+			printf("Seleccionaste Comprobar cifrado \n");
+			printf("El archivo de ORIGINAL es: %s \n", argv[2]);
+			printf("El archivo de DECIFRADO es: %s \n", argv[3]);
 
-				printf("El resultado del proceso es: ");
-				if (comprueba(argv[2], argv[3])==0){
-					printf("Proceso Correcto \n");
-				} else {
-					printf("ERROR \n");
-				}
-				break;
-			default:
-				break;
+			printf("El resultado del proceso es: ");
+			if (comprueba(argv[2], argv[3]) == 0) {
+				printf("Proceso Correcto \n");
+			} else {
+				printf("ERROR \n");
+			}
+			break;
+		default:
+			break;
 		}
 	}
 
 	return EXIT_SUCCESS;
 }
 
-int comprueba(char * path_original, char * path_final){
-	int resultado = 0, i=0, tamanio = tamanio_archivo(path_original);
+int comprueba(char * path_original, char * path_final) {
+	// Comprueba que los dos archivos enviados en los path sean identicos
+
+	// Es normal que de como resultado "Byte del fallo: 54" porque es donde
+	// empieza el archivo y termina el encabezado
+
+	int resultado = 0, i = 0, tamanio = tamanio_archivo(path_original);
 	FILE *original = fopen(path_original, "rb");
 	FILE *final = fopen(path_final, "rb");
 	char c_original, c_final;
 
-	while (!feof(original) && resultado == 0 && i< tamanio){
+	while (!feof(original) && resultado == 0 && i < tamanio) {
 		c_original = fgetc(original);
 		c_final = fgetc(final);
 		i++;
-		if (c_original != c_final){
+		if (c_original != c_final) {
 			resultado = 1;
 			printf("Byte del fallo: %d \n", i);
 		}
@@ -88,6 +102,7 @@ int comprueba(char * path_original, char * path_final){
 
 long int tamanio_archivo(char* path) {
 
+	// Devuelve el tamaño del archivo, incluyendo el encabezado
 	FILE * fichero;
 	long int tamanio = 0;
 
@@ -103,29 +118,50 @@ long int tamanio_archivo(char* path) {
 	return tamanio;
 }
 
-void inicia_ctx(ECRYPT_ctx * ctx) {
+void inicia_ctx(ECRYPT_ctx * ctx, char * path_ctx) {
 
-	int i;
+	// Cargo la configuracion para el registro ctx para que no este
+	// hardcodeada la informacion para encriptar
+
+	int i, t = sizeof(u32);
+	FILE * ctx_config = fopen(path_ctx, "rb");
+	u32 master_c[8 * t], master_x[8 * t], work_c[8 * t], work_x[8 * t];
+	u32 master_carry, work_carry;
+
+
+	fscanf(ctx_config, "<master_c>%u,%u,%u,%u,%u,%u,%u,%u</master_c>\n",
+			&master_c[0], &master_c[1], &master_c[2], &master_c[3],
+			&master_c[4], &master_c[5], &master_c[6], &master_c[7]);
+	fscanf(ctx_config, "<master_x>%u,%u,%u,%u,%u,%u,%u,%u</master_x>\n",
+			&master_x[0], &master_x[1], &master_x[2], &master_x[3],
+			&master_x[4], &master_x[5], &master_x[6], &master_x[7]);
+	fscanf(ctx_config, "<master_carry>%u</master_carry>\n", &master_carry);
+	fscanf(ctx_config, "<work_c>%u,%u,%u,%u,%u,%u,%u,%u</work_c>\n", &work_c[0],
+			&work_c[1], &work_c[2], &work_c[3], &work_c[4], &work_c[5],
+			&work_c[6], &work_c[7]);
+	fscanf(ctx_config, "<work_x>%u,%u,%u,%u,%u,%u,%u,%u</work_x>\n", &work_x[0],
+			&work_x[1], &work_x[2], &work_x[3], &work_x[4], &work_x[5],
+			&work_x[6], &work_x[7]);
+	fscanf(ctx_config, "<work_carry>%u</work_carry>", &work_carry);
 
 	for (i = 0; i < 8; i++) {
-		ctx->master_ctx.c[i] = 0;
-		ctx->master_ctx.x[i] = 0;
-		ctx->work_ctx.c[i] = 0;
-		ctx->work_ctx.x[i] = 0;
+		ctx->master_ctx.c[i] = master_c[i];
+		ctx->master_ctx.x[i] = master_x[i];
+		ctx->work_ctx.c[i] = work_c[i];
+		ctx->work_ctx.x[i] = work_x[i];
 	}
-	ctx->master_ctx.carry = 0;
-	ctx->work_ctx.carry = 0;
+	ctx->master_ctx.carry = (u32) master_carry;
+	ctx->work_ctx.carry = (u32) work_carry;
 }
 
-void cifrador(int accion, char * path_origen, char * path_destino) {
+void cifrador(int accion, char * path_origen, char * path_destino,
+		ECRYPT_ctx * ctx) {
+
+	//Encargada de encriptar/decriptar los archivos
 
 	FILE *archivo_origen;
 	FILE *archivo_destino;
 	u32 tamanio_bloque, tamanio = 53 * sizeof(u8);
-
-	// Inicio la clave ctx
-	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
-	inicia_ctx(ctx);
 
 	// Abro los archivos y verifico que existan
 	archivo_origen = fopen(path_origen, "rb");
@@ -151,7 +187,7 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 
 	// Limpio el output que es lo que fallaba
 	u32 i = 0;
-	for(i=0;i<tamanio_bloque;i++){
+	for (i = 0; i < tamanio_bloque; i++) {
 		lector[i] = 0;
 		output[i] = 0;
 	}
@@ -164,12 +200,10 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 	//ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_bloque);
 	ECRYPT_process_bytes(accion, ctx, lector, output, tamanio_bloque);
 
-
 	// Paso a una unica direccion de memoria para hacer una sola escritura
 	memcpy(impresion, encabezado, tamanio);
 	memcpy(impresion + tamanio, output, tamanio_bloque);
 	fwrite(impresion, tamanio + tamanio_bloque, 1, archivo_destino);
-
 
 	//Libero memoria
 	fflush(archivo_destino);
