@@ -43,6 +43,10 @@ int main(int argc, char **argv) {
 			printf("Seleccionaste Cifrar \n");
 			printf("El archivo de ORIGEN es: %s \n", argv[2]);
 			printf("El archivo de DESTINO es: %s \n", argv[3]);
+			
+			printf( "     /)_/)                                       \n");
+			printf( "    ( ^.^)     ¡Cifrado correcto!                \n");
+			printf( "    c(\")(\")                                    \n");
 
 			inicia_ctx(ctx, argv[4]);
 			cifrador_archivo(CIFRAR, argv[2], argv[3], ctx);
@@ -51,6 +55,10 @@ int main(int argc, char **argv) {
 			printf("Seleccionaste Decifrar \n");
 			printf("El archivo de ORIGEN es: %s \n", argv[2]);
 			printf("El archivo de DESTINO es: %s \n", argv[3]);
+			
+			printf( "     /)_/)                                       \n");
+			printf( "    ( ^.^)     ¡Decifrado correcto!              \n");
+			printf( "    c(\")(\")                                    \n");
 
 			inicia_ctx(ctx, argv[4]);
 			cifrador_archivo(DECIFRAR, argv[2], argv[3], ctx);
@@ -59,12 +67,14 @@ int main(int argc, char **argv) {
 			printf("Seleccionaste Comprobar cifrado \n");
 			printf("El archivo de ORIGINAL es: %s \n", argv[2]);
 			printf("El archivo de DECIFRADO es: %s \n", argv[3]);
-
-			printf("El resultado del proceso es: ");
 			if (comprueba(argv[2], argv[3]) == 0) {
-				printf("Proceso Correcto \n");
+				printf( "     /)_/)                                       \n");
+				printf( "    ( ^.^)     ¡Comprobación correcta!           \n");
+				printf( "    c(\")(\")                                    \n");
 			} else {
-				printf("ERROR \n");
+				printf( "     /)_/)                                       \n");
+				printf( "    ( v.v)     ¡Comprobación incorrecta!         \n");
+				printf( "    c(\")(\")                                    \n");
 			}
 			break;
 		default:
@@ -138,7 +148,7 @@ void MinToMay(char string[]){
 
 long int tamanio_archivo(char* path) {
 
-	// Devuelve el tama�o del archivo, incluyendo el encabezado
+	// Devuelve el tamaño del archivo, incluyendo el encabezado
 	FILE * fichero;
 	long int tamanio = 0;
 
