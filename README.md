@@ -16,6 +16,9 @@
     Es probable que de un error en el Byte 54/55 es porque lo anterior es el encabezado <br>
  <br>  
 
+## Archivos soportados
+  * **Imagenes:** .BMP <br>
+
 ## Aclaracion
 El archivo de configuracion de CTX tiene que tener la siguiente estructura
 ```xml
