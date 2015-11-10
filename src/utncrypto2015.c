@@ -50,9 +50,8 @@ int main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 
-	int accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
-
-	if (argc != 3){
+	if (argc == 4){
+		int accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
 		printf("Cifrador Rabbit \n");
 
 		switch (accion) {
@@ -173,7 +172,7 @@ void cifrador(int accion, char * path_origen, char * path_destino) {
 
 	// Tamaño de lo que se va a pasar por la funcion
 	tamanio_funcion = tamanio_archivo(path_origen) - tamanio;
-	printf("Tamaño: %d  \n", tamanio_funcion)
+	printf("Tamaño: %d  \n", tamanio_funcion);
 
 	u8 * encabezado = malloc(tamanio);
 	u8 * impresion = malloc(tamanio_funcion + tamanio);
