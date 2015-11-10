@@ -43,37 +43,42 @@ int main(int argc, char **argv) {
 			printf("Seleccionaste Cifrar \n");
 			printf("El archivo de ORIGEN es: %s \n", argv[2]);
 			printf("El archivo de DESTINO es: %s \n", argv[3]);
-			
-			printf( "     /)_/)                                       \n");
-			printf( "    ( ^.^)     ¡Cifrado correcto!                \n");
-			printf( "    c(\")(\")                                    \n");
 
 			inicia_ctx(ctx, argv[4]);
 			cifrador_archivo(CIFRAR, argv[2], argv[3], ctx);
+			printf("\n");
+			printf( "     /)_/)                                       \n");
+			printf( "    ( ^.^)      Cifrado correcto!                \n");
+			printf( "    c(\")(\")                                    \n");
+
 			break;
 		case 1:									//DECIFRAR
 			printf("Seleccionaste Decifrar \n");
 			printf("El archivo de ORIGEN es: %s \n", argv[2]);
 			printf("El archivo de DESTINO es: %s \n", argv[3]);
-			
-			printf( "     /)_/)                                       \n");
-			printf( "    ( ^.^)     ¡Decifrado correcto!              \n");
-			printf( "    c(\")(\")                                    \n");
 
 			inicia_ctx(ctx, argv[4]);
 			cifrador_archivo(DECIFRAR, argv[2], argv[3], ctx);
+			printf("\n");
+			printf( "     /)_/)                                       \n");
+			printf( "    ( ^.^)      Decifrado correcto!              \n");
+			printf( "    c(\")(\")                                    \n");
+
 			break;
 		case 2:									//COMPROBAR IMAGENES
 			printf("Seleccionaste Comprobar cifrado \n");
-			printf("El archivo de ORIGINAL es: %s \n", argv[2]);
-			printf("El archivo de DECIFRADO es: %s \n", argv[3]);
+			printf("El archivo ORIGINAL es: %s \n", argv[2]);
+			printf("El archivo DECIFRADO es: %s \n", argv[3]);
+
+			printf("El resultado del proceso es: \n");
+
 			if (comprueba(argv[2], argv[3]) == 0) {
 				printf( "     /)_/)                                       \n");
-				printf( "    ( ^.^)     ¡Comprobación correcta!           \n");
+				printf( "    ( ^.^)      Comprobacion correcta!           \n");
 				printf( "    c(\")(\")                                    \n");
 			} else {
 				printf( "     /)_/)                                       \n");
-				printf( "    ( v.v)     ¡Comprobación incorrecta!         \n");
+				printf( "    ( v.v)      Comprobaci�n incorrecta!         \n");
 				printf( "    c(\")(\")                                    \n");
 			}
 			break;
@@ -148,7 +153,7 @@ void MinToMay(char string[]){
 
 long int tamanio_archivo(char* path) {
 
-	// Devuelve el tamaño del archivo, incluyendo el encabezado
+	// Devuelve el tama�o del archivo, incluyendo el encabezado
 	FILE * fichero;
 	long int tamanio = 0;
 
@@ -233,8 +238,8 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
 		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado);
 	} else if(strcmp(extension, "JPG") == 0){
-		long int encabezado = 30;
-		long int pie = 30;
+		long int encabezado = 700;
+		long int pie = 3000;
 		long int total_archivo = tamanio_archivo(path_origen);
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
 		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado- pie);
