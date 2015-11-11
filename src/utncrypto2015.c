@@ -1,10 +1,10 @@
 /*
  ============================================================================
  Name        : utncrypto2015.c
- Author      : 
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
+ Author      : Federico Tula
+ Version     : 0.1
+ Copyright   : Federico Tula
+ Description : Implementacion del algoritmo Rabbit en C.
  ============================================================================
  */
 
@@ -244,7 +244,7 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
 
 	} else if(strcmp(extension, "AVI") == 0){
-		long int encabezado = 128;
+		long int encabezado = 100000;
 		long int total_archivo = tamanio_archivo(path_origen);
 
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
@@ -258,8 +258,6 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
 
 	}
-
-
 
 	fclose(archivo_destino);
 	fclose(archivo_origen);
