@@ -28,10 +28,10 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 
 int main(int argc, char **argv) {
 
-/*	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
+	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
 	inicia_ctx(ctx, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\config.txt");
-	cifrador_archivo(CIFRAR, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\j.jpg", "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\j2.jpg", ctx);
-*/
+	cifrador_archivo(CIFRAR, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\sonic.mp3", "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\sonic2.mp3", ctx);
+
 	int accion = 0;
 	if (argc > 1)
 		accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
@@ -198,6 +198,7 @@ void inicia_ctx(ECRYPT_ctx * ctx, char * path_ctx) {
 			&work_x[6], &work_x[7]);
 	fscanf(ctx_config, "<work_carry>%u</work_carry>", &work_carry);
 
+
 	for (i = 0; i < 8; i++) {
 		ctx->master_ctx.c[i] = master_c[i];
 		ctx->master_ctx.x[i] = master_x[i];
@@ -243,12 +244,37 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
 		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
 
-	} else if(strcmp(extension, "AVI") == 0){
-		long int encabezado = 100000;
+	} else if(strcmp(extension, "MP3") == 0){
+		long int encabezado = 68;
 		long int total_archivo = tamanio_archivo(path_origen);
+		char * archivo = malloc(total_archivo);
+		fread(archivo, total_archivo, 1, archivo_origen);
+		fclose(archivo_origen);
+		archivo_origen = fopen(path_origen, "rb");
 
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
-		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
+		long int i =encabezado, ultimo_fin_encabezado = 0;
+		for(i=encabezado; i<total_archivo;i++){
+
+			if (*(archivo+encabezado) == *(archivo+i) &&
+					*(archivo + encabezado+1) == *(archivo + i + 1) &&
+					*(archivo + encabezado+2) == *(archivo + i + 2) &&
+					*(archivo + encabezado+3) == *(archivo + i + 3) &&
+					*(archivo + encabezado+4) == *(archivo + i + 4) &&
+					*(archivo + encabezado+5) == *(archivo + i + 5) &&
+					*(archivo + encabezado+6) == *(archivo + i + 6) &&
+					*(archivo + encabezado+7) == *(archivo + i + 7) &&
+					*(archivo + encabezado+8) == *(archivo + i + 8) &&
+					*(archivo + encabezado+9) == *(archivo + i + 9)){
+
+				copiar_texto_claro( archivo_origen, archivo_destino, 10);
+				if (i != encabezado){
+					cifrador(accion, archivo_origen, archivo_destino, ctx, i - ultimo_fin_encabezado);
+				}
+				ultimo_fin_encabezado = i + 10;
+			}
+		}
+		cifrador(accion, archivo_origen, archivo_destino, ctx, i - ultimo_fin_encabezado - 1);
 
 	} else if(strcmp(extension, "WAV") == 0){
 		long int encabezado = 44;
