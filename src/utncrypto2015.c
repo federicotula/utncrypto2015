@@ -28,6 +28,10 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 
 int main(int argc, char **argv) {
 
+/*	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
+	inicia_ctx(ctx, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\config.txt");
+	cifrador_archivo(CIFRAR, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\j.jpg", "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\j2.jpg", ctx);
+*/
 	int accion = 0;
 	if (argc > 1)
 		accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
@@ -238,12 +242,28 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
 		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado);
 	} else if(strcmp(extension, "JPG") == 0){
-		long int encabezado = 700;
 		long int pie = 3000;
 		long int total_archivo = tamanio_archivo(path_origen);
-		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
-		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado- pie);
+
+		copiar_texto_claro( archivo_origen, archivo_destino, 2);
+
+		//APP
+		copiar_texto_claro( archivo_origen, archivo_destino, 2);
+		copiar_texto_claro( archivo_origen, archivo_destino, 2);
+		copiar_texto_claro( archivo_origen, archivo_destino, 6);
+		copiar_texto_claro( archivo_origen, archivo_destino, 8);
+
+		copiar_texto_claro( archivo_origen, archivo_destino, 2);
+
+
+
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo);
 		copiar_texto_claro( archivo_origen, archivo_destino, pie);
+	} else if(strcmp(extension, "WAV") == 0){
+		long int encabezado = 44;
+		long int total_archivo = tamanio_archivo(path_origen);
+		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado);
 	}
 
 
