@@ -18,6 +18,7 @@
 
 ## Archivos soportados
   * **Imagenes:** .BMP <br>
+  * **Audio:** .WAV <br>
 
 ## Aclaracion
 El archivo de configuracion de CTX tiene que tener la siguiente estructura
