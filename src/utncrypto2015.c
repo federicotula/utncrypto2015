@@ -28,10 +28,6 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 
 int main(int argc, char **argv) {
 
-	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
-	inicia_ctx(ctx, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\config.txt");
-	cifrador_archivo(CIFRAR, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\sonic.mp3", "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\sonic2.mp3", ctx);
-
 	int accion = 0;
 	if (argc > 1)
 		accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
