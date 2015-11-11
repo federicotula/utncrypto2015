@@ -17,6 +17,8 @@
 const int CIFRAR = 0;
 const int DECIFRAR = 1;
 
+int iv = 0;
+
 long int tamanio_archivo(char* path);
 void inicia_ctx(ECRYPT_ctx * ctx, char * path);
 void cifrador(int accion, FILE * archivo_origen, FILE * archivo_destino,
@@ -28,6 +30,12 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 
 int main(int argc, char **argv) {
 
+/*	ECRYPT_ctx * ctx = malloc(sizeof(ECRYPT_ctx));
+	inicia_ctx(ctx,"C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\config.txt");
+	cifrador_archivo(CIFRAR, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\imagen.bmp", "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\imagen2.bmp", ctx);
+	inicia_ctx(ctx,"C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\config.txt");
+	cifrador_archivo(CIFRAR, "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\imagen2.bmp", "C:\\Users\\admin\\git\\utncrypto2015\\mingw debug\\imagen3.bmp", ctx);
+*/
 	int accion = 0;
 	if (argc > 1)
 		accion = argv[1][0] - 48; // Paso del codigo ASCII a decimal
@@ -178,22 +186,35 @@ void inicia_ctx(ECRYPT_ctx * ctx, char * path_ctx) {
 	FILE * ctx_config = fopen(path_ctx, "rb");
 	u32 master_c[8 * t], master_x[8 * t], work_c[8 * t], work_x[8 * t];
 	u32 master_carry, work_carry;
+	char define;
 
-	fscanf(ctx_config, "<master_c>%u,%u,%u,%u,%u,%u,%u,%u</master_c>\n",
-			&master_c[0], &master_c[1], &master_c[2], &master_c[3],
-			&master_c[4], &master_c[5], &master_c[6], &master_c[7]);
-	fscanf(ctx_config, "<master_x>%u,%u,%u,%u,%u,%u,%u,%u</master_x>\n",
-			&master_x[0], &master_x[1], &master_x[2], &master_x[3],
-			&master_x[4], &master_x[5], &master_x[6], &master_x[7]);
-	fscanf(ctx_config, "<master_carry>%u</master_carry>\n", &master_carry);
-	fscanf(ctx_config, "<work_c>%u,%u,%u,%u,%u,%u,%u,%u</work_c>\n", &work_c[0],
-			&work_c[1], &work_c[2], &work_c[3], &work_c[4], &work_c[5],
-			&work_c[6], &work_c[7]);
-	fscanf(ctx_config, "<work_x>%u,%u,%u,%u,%u,%u,%u,%u</work_x>\n", &work_x[0],
-			&work_x[1], &work_x[2], &work_x[3], &work_x[4], &work_x[5],
-			&work_x[6], &work_x[7]);
-	fscanf(ctx_config, "<work_carry>%u</work_carry>", &work_carry);
-
+	fscanf(ctx_config, "<iv>%d</iv>\n", &iv);
+	fscanf(ctx_config, "<define_ctx>%c</define_ctx>\n", &define);
+	if (define == 'S'){
+		fscanf(ctx_config, "<master_c>%u,%u,%u,%u,%u,%u,%u,%u</master_c>\n",
+				&master_c[0], &master_c[1], &master_c[2], &master_c[3],
+				&master_c[4], &master_c[5], &master_c[6], &master_c[7]);
+		fscanf(ctx_config, "<master_x>%u,%u,%u,%u,%u,%u,%u,%u</master_x>\n",
+				&master_x[0], &master_x[1], &master_x[2], &master_x[3],
+				&master_x[4], &master_x[5], &master_x[6], &master_x[7]);
+		fscanf(ctx_config, "<master_carry>%u</master_carry>\n", &master_carry);
+		fscanf(ctx_config, "<work_c>%u,%u,%u,%u,%u,%u,%u,%u</work_c>\n", &work_c[0],
+				&work_c[1], &work_c[2], &work_c[3], &work_c[4], &work_c[5],
+				&work_c[6], &work_c[7]);
+		fscanf(ctx_config, "<work_x>%u,%u,%u,%u,%u,%u,%u,%u</work_x>\n", &work_x[0],
+				&work_x[1], &work_x[2], &work_x[3], &work_x[4], &work_x[5],
+				&work_x[6], &work_x[7]);
+		fscanf(ctx_config, "<work_carry>%u</work_carry>", &work_carry);
+	} else {
+		for (i = 0; i < 8; i++) {
+				master_c[i] = 0;
+				master_x[i] = 0;
+				work_c[i] = 0;
+				work_x[i] = 0;
+			}
+			master_carry = 0;
+			work_carry = 0;
+	}
 
 	for (i = 0; i < 8; i++) {
 		ctx->master_ctx.c[i] = master_c[i];
@@ -203,6 +224,8 @@ void inicia_ctx(ECRYPT_ctx * ctx, char * path_ctx) {
 	}
 	ctx->master_ctx.carry = (u32) master_carry;
 	ctx->work_ctx.carry = (u32) work_carry;
+
+	fclose(ctx_config);
 }
 
 void copiar_texto_claro(FILE * archivo_origen, FILE * archivo_destino, int tamanio){
@@ -304,7 +327,8 @@ void cifrador(int accion, FILE * archivo_origen, FILE * archivo_destino,
 	fread(lector, tamanio_bloque, 1, archivo_origen);
 
 	// Proceso lo que obtengo en la lectura
-	ECRYPT_process_bytes(accion, ctx, lector, output, tamanio_bloque);
+	//ECRYPT_process_bytes(accion, ctx, lector, output, tamanio_bloque);
+	ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_bloque);
 
 	// Paso a una unica direccion de memoria para hacer una sola escritura
 	fwrite(output, tamanio_bloque, 1, archivo_destino);
