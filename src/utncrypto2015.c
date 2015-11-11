@@ -284,7 +284,6 @@ void cifrador(int accion, FILE * archivo_origen, FILE * archivo_destino,
 	fread(lector, tamanio_bloque, 1, archivo_origen);
 
 	// Proceso lo que obtengo en la lectura
-	//ECRYPT_process_packet(accion, ctx, &iv, lector, output, tamanio_bloque);
 	ECRYPT_process_bytes(accion, ctx, lector, output, tamanio_bloque);
 
 	// Paso a una unica direccion de memoria para hacer una sola escritura
