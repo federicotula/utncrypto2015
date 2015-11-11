@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 			printf("El archivo ORIGINAL es: %s \n", argv[2]);
 			printf("El archivo DECIFRADO es: %s \n", argv[3]);
 
-			printf("El resultado del proceso es: \n");
+			printf("El resultado del proceso es... \n\n");
 
 			if (comprueba(argv[2], argv[3]) == 0) {
 				printf( "     /)_/)                                       \n");
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 				printf( "    c(\")(\")                                    \n");
 			} else {
 				printf( "     /)_/)                                       \n");
-				printf( "    ( v.v)      Comprobación incorrecta!         \n");
+				printf( "    ( v.v)      Comprobacion incorrecta!         \n");
 				printf( "    c(\")(\")                                    \n");
 			}
 			break;
@@ -239,31 +239,24 @@ void cifrador_archivo(int accion, char * path_origen, char * path_destino, ECRYP
 	if (strcmp(extension, "BMP") == 0) {
 		long int encabezado = 53;
 		long int total_archivo = tamanio_archivo(path_origen);
+
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
-		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado);
-	} else if(strcmp(extension, "JPG") == 0){
-		long int pie = 3000;
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
+
+	} else if(strcmp(extension, "AVI") == 0){
+		long int encabezado = 128;
 		long int total_archivo = tamanio_archivo(path_origen);
 
-		copiar_texto_claro( archivo_origen, archivo_destino, 2);
+		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
 
-		//APP
-		copiar_texto_claro( archivo_origen, archivo_destino, 2);
-		copiar_texto_claro( archivo_origen, archivo_destino, 2);
-		copiar_texto_claro( archivo_origen, archivo_destino, 6);
-		copiar_texto_claro( archivo_origen, archivo_destino, 8);
-
-		copiar_texto_claro( archivo_origen, archivo_destino, 2);
-
-
-
-		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo);
-		copiar_texto_claro( archivo_origen, archivo_destino, pie);
 	} else if(strcmp(extension, "WAV") == 0){
 		long int encabezado = 44;
 		long int total_archivo = tamanio_archivo(path_origen);
+
 		copiar_texto_claro( archivo_origen, archivo_destino, encabezado);
-		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo- encabezado);
+		cifrador(accion, archivo_origen, archivo_destino, ctx, total_archivo - encabezado);
+
 	}
 
 
